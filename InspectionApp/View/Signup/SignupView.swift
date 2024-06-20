@@ -12,9 +12,9 @@ struct SignupView: View {
     // MARK: - PROPERTY
     @State private var emailTxt: String = ""
     @State private var passwordTxt: String = ""
-    @State private var showValidationAlert: Bool = false
-    @State private var showSuccessAlert: Bool = false
-    @State private var validationError: String = ""
+    @State private var showAlert: Bool = false
+    @State private var alertTitle: String = ""
+    @State private var alertMessage: String = ""
     @Environment(\.dismiss) var dismiss
     
     // MARK: - BODY
@@ -50,16 +50,19 @@ struct SignupView: View {
                     //login button action
                     hideKeyboard()
                     if emailTxt.isEmpty {
-                        validationError = "Please enter email address"
-                        showValidationAlert = true
+                        alertTitle = "Error"
+                        alertMessage = "Please enter email address"
+                        showAlert = true
                     }
                     else if !emailTxt.isValidEmail {
-                        validationError = "Please enter valid email address"
-                        showValidationAlert = true
+                        alertTitle = "Error"
+                        alertMessage = "Please enter valid email address"
+                        showAlert = true
                     }
                     else if passwordTxt.isEmpty {
-                        validationError = "Please enter password"
-                        showValidationAlert = true
+                        alertTitle = "Error"
+                        alertMessage = "Please enter password"
+                        showAlert = true
                     }
                     else {
                         callRegisterService()
@@ -72,11 +75,7 @@ struct SignupView: View {
                         Spacer()
                     }
                 })
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 5)
-                        .fill(.colorGreen)
-                )
+                .modifier(FullButtonModifier())
                 .padding(.vertical)
                 
                 Spacer()
@@ -93,20 +92,14 @@ struct SignupView: View {
                 })
                 .padding(.bottom, 20)
             }
+            .navigationBarBackButtonHidden()
             .padding(.horizontal, 20)
             .frame(minWidth: 0, maxWidth: 540)
-            .alert(isPresented: $showValidationAlert, content: {
-                Alert(title: Text("Error"), message: Text(validationError), dismissButton: .default(Text("OK")))
-
-            })
-            .alert(isPresented: $showSuccessAlert, content: {
-                Alert(title: Text("Success"), message: Text("User register successfully, please login."), dismissButton: .default(Text("OK"), action: {
-                    dismiss()
-                }))
+            .alert(isPresented: $showAlert, content: {
+                Alert(title: Text(alertTitle), message: Text(alertMessage), dismissButton: .default(Text("OK")))
 
             })
         }
-        .navigationBarBackButtonHidden()
     }
     
     // MARK: - FUNCTION
@@ -115,12 +108,15 @@ struct SignupView: View {
         LoginRequestService().register(request: signupRequest) { response, errorResponse in
             if response != nil && response! == true {
                 debugPrint("Login Success")
-                showSuccessAlert = true
+                alertTitle = "Success"
+                alertMessage = "User register successfully, please login."
+                showAlert = true
             }
             else {
                 if let error = errorResponse?.error {
-                    validationError = error
-                    showValidationAlert = true
+                    alertTitle = "Error"
+                    alertMessage = error
+                    showAlert = true
                 }
             }
         }
